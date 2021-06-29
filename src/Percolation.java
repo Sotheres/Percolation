@@ -4,8 +4,10 @@ public class Percolation {
 
     private final WeightedQuickUnionUF uf;
     private final boolean[][] openSites;
+    private final boolean[] botConnected;
     private int numOpenSites;
     private final int size;
+    private boolean percolates;
     private int fullRoot;
 
     public Percolation(int n) {
@@ -13,15 +15,16 @@ public class Percolation {
             throw new IllegalArgumentException("Attempt to create 0-cell grid.");
         }
 
-        uf = new WeightedQuickUnionUF(n*n+2);
-        for (int i = 0; i < n; i++) {
-            uf.union(n*n, i);
-            uf.union(n*n+1, n*n-1 - i);
-        }
-
+        uf = new WeightedQuickUnionUF(n*n + 1);
         openSites = new boolean[n][n];
+        botConnected = new boolean[n*n + 1];
         size = n;
         fullRoot = size * size;
+
+        for (int i = 0; i < n; i++) {
+            uf.union(n*n, i);
+            botConnected[n * n - 1 - i] = true;
+        }
     }
 
     public void open(int row, int col) {
@@ -32,29 +35,53 @@ public class Percolation {
             numOpenSites++;
 
             int n = rowColToN(row, col);
+            boolean bottomConnected = false;
+
             if (col > 1 && isOpen(row, col - 1)) {
+                if (botConnected[uf.find(n-1)]) {
+                    bottomConnected = true;
+                }
                 uf.union(n, n - 1);
                 if (uf.find(n) == uf.find(size * size)) {
                     fullRoot = uf.find(n);
                 }
             }
             if (col < size && isOpen(row, col + 1)) {
+                if (botConnected[uf.find(n+1)]) {
+                    bottomConnected = true;
+                }
                 uf.union(n, n + 1);
                 if (uf.find(n) == uf.find(size * size)) {
                     fullRoot = uf.find(n);
                 }
             }
             if (row < size && isOpen(row + 1, col)) {
+                if (botConnected[uf.find(n+size)]) {
+                    bottomConnected = true;
+                }
                 uf.union(n, n + size);
                 if (uf.find(n) == uf.find(size * size)) {
                     fullRoot = uf.find(n);
                 }
             }
             if (row > 1 && isOpen(row - 1, col)) {
+                if (botConnected[uf.find(n-size)]) {
+                    bottomConnected = true;
+                }
                 uf.union(n, n - size);
+                if (row == size) {
+                    botConnected[uf.find(n)] = true;
+                }
                 if (uf.find(n) == uf.find(size * size)) {
                     fullRoot = uf.find(n);
                 }
+            }
+
+            if(bottomConnected) {
+                botConnected[n] = true;
+            }
+            if (botConnected[fullRoot]) {
+                percolates = true;
             }
         }
     }
@@ -68,8 +95,7 @@ public class Percolation {
     public boolean isFull(int row, int col) {
         validate(row, col);
 
-        int n = rowColToN(row, col);
-        return isOpen(row, col) && uf.find(n) == fullRoot;
+        return isOpen(row, col) && uf.find(rowColToN(row, col)) == fullRoot;
     }
 
     public int numberOfOpenSites() {
@@ -77,7 +103,7 @@ public class Percolation {
     }
 
     public boolean percolates() {
-        return numOpenSites > 0 && uf.find(size*size) == uf.find(size*size + 1);
+        return percolates;
     }
 
     private int rowColToN(int row, int col) {
@@ -93,16 +119,8 @@ public class Percolation {
     public static void main(String[] args) {
         int n = 10;
         Percolation grid = new Percolation(n);
-        int row, col;
 
-        System.out.println(grid.uf.find(1));
-
-//        while (!grid.percolates()) {
-//            row = StdRandom.uniform(n) + 1;
-//            col = StdRandom.uniform(n) + 1;
-//            grid.open(row, col);
-//        }
-//
-//        System.out.println((double) grid.numberOfOpenSites()/(n*n));
+        System.out.println(grid.botConnected[99]);
+        System.out.println(grid.uf.find(99));
     }
 }
