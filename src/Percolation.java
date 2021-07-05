@@ -7,7 +7,6 @@ public class Percolation {
     private final boolean[] botConnected;
     private int numOpenSites;
     private final int size;
-    private boolean percolates;
     private int fullRoot;
 
     public Percolation(int n) {
@@ -77,11 +76,8 @@ public class Percolation {
                 }
             }
 
-            if(bottomConnected) {
-                botConnected[n] = true;
-            }
-            if (botConnected[fullRoot]) {
-                percolates = true;
+            if(bottomConnected || botConnected[n]) {
+                botConnected[uf.find(n)] = true;
             }
         }
     }
@@ -103,7 +99,7 @@ public class Percolation {
     }
 
     public boolean percolates() {
-        return percolates;
+        return botConnected[fullRoot];
     }
 
     private int rowColToN(int row, int col) {
@@ -120,7 +116,6 @@ public class Percolation {
         int n = 10;
         Percolation grid = new Percolation(n);
 
-        System.out.println(grid.botConnected[99]);
-        System.out.println(grid.uf.find(99));
+        System.out.println(grid.uf.find(10));
     }
 }
