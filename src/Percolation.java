@@ -68,9 +68,6 @@ public class Percolation {
                     bottomConnected = true;
                 }
                 uf.union(n, n - size);
-                if (row == size) {
-                    botConnected[uf.find(n)] = true;
-                }
                 if (uf.find(n) == uf.find(size * size)) {
                     fullRoot = uf.find(n);
                 }
